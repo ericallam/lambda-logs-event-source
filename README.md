@@ -4,7 +4,7 @@ An [AWS SAM](https://github.com/awslabs/serverless-application-model) app that p
 
 ## Architecture
 
-![lambda-logs-event-source Architecture](/assets/lambda-logs-event-processor-arch-diagram.png)
+![lambda-logs-event-source Architecture](https://github.com/solve-hq/lambda-logs-event-source/raw/master/assets/lambda-logs-event-processor-arch-diagram.png)
 
 - Newly created Lambda CloudWatch LogGroups trigger the `set-log-group-retention-policy` and `subscribe-to-logs` functions.
 - `set-log-group-retention-policy` updates the LogGroup retention period to a default of 7 days.
