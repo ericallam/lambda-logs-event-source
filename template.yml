@@ -1,0 +1,184 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  lambda-logs-event-source
+
+  A serverless app that processes JSON logs from Lambda & API Gateway CloudWatch logs and invokes a given function
+
+Parameters:
+  EventProcessorFunctionName:
+    Type: String
+    Description: Name of lambda function that should be invoked to events parsed from logs. Note this must be the name of the function, not the function arn
+  RetentionDays:
+    Type: Number
+    Default: 7
+    Description: "Number of days to retain CloudWatch Log Groups"
+    AllowedValues:
+      - 1
+      - 3
+      - 5
+      - 7
+      - 14
+      - 30
+      - 60
+  DebugEnabled:
+    Type: String
+    Description: "Set to yes to enable debug logging of this app's lambda functions"
+    Default: "no"
+    AllowedValues: ["yes", "no"]
+
+Conditions:
+  IsDebugEnabled: !Equals [!Ref DebugEnabled, "yes"]
+
+Globals:
+  Function:
+    Timeout: 450
+    MemorySize: 512
+    Runtime: nodejs8.10
+    Environment:
+      Variables:
+        PROCESSOR_FUNCTION_NAME: !Ref EventProcessorFunctionName
+        DEBUG:
+          !If [
+            IsDebugEnabled,
+            "lambda-logs-event-source:*",
+            "-lambda-logs-event-source:*",
+          ]
+
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: lambda-logs-event-source
+    Description: A serverless app that processes JSON logs from Lambda & API Gateway CloudWatch logs and invokes a given function
+    Author: Eric Allam
+    SpdxLicenseId: MIT
+    LicenseUrl: LICENSE.txt
+    ReadmeUrl: README.md
+    Labels: ["logging", "observability", "lambda"]
+    HomePageUrl: https://github.com/solve-hq/lambda-logs-event-source
+    SemanticVersion: 1.0.0
+    SourceCodeUrl: https://github.com/solve-hq/lambda-logs-event-source
+
+Resources:
+  ProcessLogs:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./functions/process-logs
+      Handler: index.handler
+      MemorySize: 2048
+      ReservedConcurrentExecutions: 20
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref EventProcessorFunctionName
+
+  StructureAPIGatewayLogs:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./functions/structure-api-gateway-logs
+      Handler: index.handler
+      MemorySize: 2048
+      ReservedConcurrentExecutions: 40
+
+  # Subscribe to newly created log groups to trigger the ship-logs function
+  SubscribeToLogs:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./functions/subscribe-to-logs
+      Handler: index.handler
+      Environment:
+        Variables:
+          DESTINATION_ARN: !GetAtt ProcessLogs.Arn
+          PREFIX: "/aws/lambda"
+          FILTER_PATTERN: '[timestamp=*Z, request_id="*-*", event]'
+      Events:
+        CloudTrailSubscribeLogGroupTrigger:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              source:
+                - aws.logs
+              detail-type:
+                - AWS API Call via CloudTrail
+              detail:
+                eventSource:
+                  - logs.amazonaws.com
+                eventName:
+                  - CreateLogGroup
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - logs:PutSubscriptionFilter
+              - logs:DescribeSubscriptionFilters
+            Resource: "*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - lambda:AddPermission
+            Resource: "*"
+
+  SubToApiLogs:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./functions/subscribe-to-logs
+      Handler: index.handler
+      Environment:
+        Variables:
+          DESTINATION_ARN: !GetAtt StructureAPIGatewayLogs.Arn
+          PREFIX: "API-Gateway-Execution-Logs"
+          FILTER_PATTERN: ""
+      Events:
+        CloudTrailSubscribeLogGroupTrigger:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              source:
+                - aws.logs
+              detail-type:
+                - AWS API Call via CloudTrail
+              detail:
+                eventSource:
+                  - logs.amazonaws.com
+                eventName:
+                  - CreateLogGroup
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - logs:PutSubscriptionFilter
+              - logs:DescribeSubscriptionFilters
+            Resource: "*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - lambda:AddPermission
+            Resource: "*"
+
+  # Set newly created log groups retention policy to 7 days
+  SetLogGroupRetentionPolicy:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./functions/set-log-group-retention-policy
+      Handler: index.handler
+      Environment:
+        Variables:
+          RETENTION_DAYS: !Ref RetentionDays
+      Events:
+        CloudTrailLogGroupTrigger:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              source:
+                - aws.logs
+              detail-type:
+                - AWS API Call via CloudTrail
+              detail:
+                eventSource:
+                  - logs.amazonaws.com
+                eventName:
+                  - CreateLogGroup
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - logs:PutRetentionPolicy
+            Resource: "*"

@@ -1,0 +1,22 @@
+{
+  "name": "lambda-logs-event-source",
+  "version": "1.0.0",
+  "description": "A serverless app that processes JSON logs from Lambda & API Gateway CloudWatch logs and invokes a given function",
+  "author": "Eric Allam @ericallam",
+  "main": "index.js",
+  "license": "MIT",
+  "bugs": "https://github.com/solve-hq/lambda-logs-event-source/issues",
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "devDependencies": {
+    "aws-sam-helper-commands": "0.x",
+    "aws-sdk": "2.x"
+  },
+  "homepage": "https://github.com/solve-hq/lambda-logs-event-source",
+  "repository": "https://github.com/solve-hq/lambda-logs-event-source",
+  "scripts": {
+    "build": "sam build",
+    "deploy": "sam-helper deploy-config -n logs-app-2019-03-08 -r eu-west-1"
+  }
+}

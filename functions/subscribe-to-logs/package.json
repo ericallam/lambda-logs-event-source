@@ -1,0 +1,18 @@
+{
+  "name": "subscribe-to-logs",
+  "version": "1.0.0",
+  "description": "Subcribes to a log group's logs with a lambda trigger",
+  "main": "index.js",
+  "repository": "https://github.com/solve-hq/lambda-logs-event-source",
+  "author": "Eric Allam @ericallam",
+  "license": "MIT",
+  "devDependencies": {
+    "aws-sdk": "*"
+  },
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {
+    "debug": "^4.1.1"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "set-log-group-retention-policy",
+  "version": "1.0.0",
+  "description": "Sets the retention policy of newly created CloudWatch Log Groups",
+  "main": "index.js",
+  "repository": "https://github.com/solve-hq/lambda-logs-event-source",
+  "author": "Eric Allam",
+  "license": "MIT",
+  "devDependencies": {
+    "aws-sdk": "*"
+  },
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {
+    "debug": "^4.1.1"
+  }
+}
