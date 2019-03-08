@@ -25,7 +25,7 @@ LogSource:
   Type: AWS::Serverless::Application
   Properties:
     Location:
-      ApplicationId: arn:aws:serverlessrepo:us-east-1:077246666028:applications/lambda-logs-event-source
+      ApplicationId: arn:aws:serverlessrepo:us-east-1:958845080241:applications/lambda-logs-event-source
       SemanticVersion: 1.0.0
     Parameters:
       EventProcessorFunctionName: !Ref ShipLogsToThirdParty
