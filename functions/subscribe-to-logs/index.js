@@ -46,22 +46,38 @@ const subscribe = async (logGroupName, accountId) => {
     return;
   }
 
-  const permission = {
-    FunctionName: destinationArn,
-    StatementId: `${logGroupName.split("/")[3]}_${parseInt(
-      Math.random() * 10000
-    )}`,
-    Action: "lambda:InvokeFunction",
-    Principal: `logs.${process.env.AWS_REGION}.amazonaws.com`,
-    SourceArn: `arn:aws:logs:${
-      process.env.AWS_REGION
-    }:${accountId}:log-group:${logGroupName}:*`,
-    SourceAccount: accountId
-  };
+  const StatementId = "cloudwatchLogsTrigger";
+  let needsToAddPermissionForCloudwatchTrigger = false;
 
-  debug(`Adding permission for cloudwatch to invoke lambda: %o`, permission);
+  try {
+    const existingPolicyResponse = await lambda.getPolicy({
+      FunctionName: destinationArn
+    });
 
-  await lambda.addPermission(permission).promise();
+    const { Statement } = JSON.parse(existingPolicyResponse.Policy);
+
+    needsToAddPermissionForCloudwatchTrigger =
+      Statement.find(({ Sid }) => Sid === StatementId) === undefined;
+  } catch (e) {
+    // Error means that the cloudwatch trigger permission has yet to be added
+    needsToAddPermissionForCloudwatchTrigger = true;
+  }
+
+  if (needsToAddPermissionForCloudwatchTrigger) {
+    const permission = {
+      FunctionName: destinationArn,
+      StatementId,
+      Action: "lambda:InvokeFunction",
+      Principal: `logs.${process.env.AWS_REGION}.amazonaws.com`,
+      SourceAccount: accountId
+    };
+
+    logger.debug(`Adding permission for cloudwatch to invoke lambda`, {
+      permission
+    });
+
+    await lambda.addPermission(permission).promise();
+  }
 
   const options = {
     destinationArn,
