@@ -50,9 +50,11 @@ const subscribe = async (logGroupName, accountId) => {
   let needsToAddPermissionForCloudwatchTrigger = false;
 
   try {
-    const existingPolicyResponse = await lambda.getPolicy({
-      FunctionName: destinationArn
-    });
+    const existingPolicyResponse = await lambda
+      .getPolicy({
+        FunctionName: destinationArn
+      })
+      .promise();
 
     const { Statement } = JSON.parse(existingPolicyResponse.Policy);
 

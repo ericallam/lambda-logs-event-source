@@ -114,6 +114,7 @@ Resources:
             Effect: Allow
             Action:
               - lambda:AddPermission
+              - lambda:GetPolicy
             Resource: "*"
 
   SubToApiLogs:
