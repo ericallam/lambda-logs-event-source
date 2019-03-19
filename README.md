@@ -16,9 +16,9 @@ An [AWS SAM](https://github.com/awslabs/serverless-application-model) app that p
 - The `structure-api-gateway-logs` has a subscription filter on it that triggers the `process-logs`.
 - `process-logs` parses the structured JSON logs into individual events and invokes your Processor Function with an array of events using an `"Event"` invocation type
 
-## Installation
+## Usage
 
-This app is meant to be used as part of a larger application, so the recommended way to use it is to embed it as a nested app in your serverless application. To do this, paste the following into your SAM template:
+This app is meant to be used as part of a parent application, so the recommended way to use it is to embed it as a nested app in your serverless application. To do this, paste the following into your SAM template:
 
 ```yaml
 LogSource:
@@ -35,29 +35,22 @@ LogSource:
       #DebugEnabled: "yes" # Uncomment to override default value
 ```
 
-## Publishing a new version
+> **Note:** The above method only works if the parent application deploys to `us-east-1`. See the instructions below for an alternative method
 
-First, update the `SemanticVersion` in the `AWS::ServerlessRepo::Application` metadata in the `template.yml` CloudFormation template:
+### Usage in non us-east-1 region
 
-```yaml
-Metadata:
-  AWS::ServerlessRepo::Application:
-    Name: lambda-logs-event-source
-    Description: A serverless app that processes JSON logs from Lambda & API Gateway CloudWatch logs and invokes a given function
-    Author: Eric Allam
-    SpdxLicenseId: MIT
-    LicenseUrl: LICENSE.txt
-    ReadmeUrl: README.md
-    Labels: ["logging", "observability", "lambda"]
-    HomePageUrl: https://github.com/solve-hq/lambda-logs-event-source
-    SemanticVersion: 1.0.1
-    SourceCodeUrl: https://github.com/solve-hq/lambda-logs-event-source
-```
+Because of limitations of the Serverless Application Repository (SAR), if you'd like to deploy this stack to a non `us-east-1` region you cannot use the `AWS::Serverless::Application` resource type in a parent application and deploy the parent application.
 
-Then, build, package, and publish the application like so:
+Instead, you'll need to deploy the parent application with the `AWS::Serverless::Application` resource, and use the SAR Console to deploy the public `lambda-logs-event-source` application, inputting the `EventProcessorFunctionName` function name in the UI.
 
-```bash
-$ yarn build
-$ sam package --template-file ./.aws-sam/build/template.yaml --s3-bucket solve-eric-source-code-us-east-1 --output-template-file ./.aws-sam/build/packaged.yml --region us-east-1 --profile eric-dev
-$ sam publish --template ./.aws-sam/build/packaged.yml --region us-east-1 --profile eric-dev --semantic-version NEW_VERSION
-```
+That means that before you can deploy this stack, you'll need to deploy the parent stack and make note of the function name of the lambda that will be handling the log events. Then, follow the steps below to deploy this stack:
+
+1. Find the `lambda-logs-event-source` application in the Available Applications section of the SAR or simply [visit the public page of the application here](https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:958845080241:applications~lambda-logs-event-source) and hit the "Deploy" button
+
+![Step 1](/assets/deploy-step-1.png)
+
+2. Fill out the parameters, making sure to use the lambda function name (not ARN) of the lambda in the parent stack that will be handling the logs events:
+
+![Step 2](assets/deploy-step-2.png)
+
+3. Complete the process by ensuring the "I Acknowledge that this app creates IAM roles" is checked and then hit the "Deploy" button
