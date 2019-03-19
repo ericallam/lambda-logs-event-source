@@ -59,5 +59,5 @@ Then, build, package, and publish the application like so:
 ```bash
 $ yarn build
 $ sam package --template-file ./.aws-sam/build/template.yaml --s3-bucket solve-eric-source-code-us-east-1 --output-template-file ./.aws-sam/build/packaged.yml --region us-east-1 --profile eric-dev
-$ sam publish --template ./.aws-sam/build/packaged.yml --region us-east-1 --profile eric-dev
+$ sam publish --template ./.aws-sam/build/packaged.yml --region us-east-1 --profile eric-dev --semantic-version NEW_VERSION
 ```
