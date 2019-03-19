@@ -72,9 +72,7 @@ const subscribe = async (logGroupName, accountId) => {
       SourceAccount: accountId
     };
 
-    logger.debug(`Adding permission for cloudwatch to invoke lambda`, {
-      permission
-    });
+    debug(`Adding permission for cloudwatch to invoke lambda: %o`, permission);
 
     await lambda.addPermission(permission).promise();
   }
