@@ -55,7 +55,7 @@ Metadata:
     ReadmeUrl: README.md
     Labels: ["logging", "observability", "lambda"]
     HomePageUrl: https://github.com/solve-hq/lambda-logs-event-source
-    SemanticVersion: 1.0.0
+    SemanticVersion: 1.0.1
     SourceCodeUrl: https://github.com/solve-hq/lambda-logs-event-source
 
 Resources:
