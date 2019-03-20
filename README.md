@@ -1,6 +1,6 @@
 # lambda-logs-event-source Serverless App
 
-An [AWS SAM](https://github.com/awslabs/serverless-application-model) app that processes JSON logs from Lambda & API Gateway CloudWatch logs and invokes a given function.
+An [AWS SAM](https://github.com/awslabs/serverless-application-model) app that processes JSON logs from Lambda & API Gateway CloudWatch logs and invokes a given function. Inspired by [Yan Cui's lambda-logging-demo](https://github.com/theburningmonk/lambda-logging-demo)
 
 ## Architecture
 
