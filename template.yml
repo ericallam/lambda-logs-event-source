@@ -152,6 +152,7 @@ Resources:
             Effect: Allow
             Action:
               - lambda:AddPermission
+              - lambda:GetPolicy
             Resource: "*"
 
   # Set newly created log groups retention policy to 7 days
